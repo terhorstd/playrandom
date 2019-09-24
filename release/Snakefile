@@ -1,0 +1,119 @@
+from urllib.parse import urlencode, urlunparse
+from urllib.request import urlopen
+import os.path
+import re
+
+configfile: 'config.yaml'
+
+rule test_release:
+    input:
+        '.test-release-%s.date' % config['version']
+    message:
+        '''
+        The complete test-release process has finished successfully.
+        Check the release in an environment of your choice with
+
+           pip install --index-url https://test.pypi.org/simple {config[package]}
+
+        If you are happy with the result, do a full release with
+
+           snakemake -pr release
+        '''
+
+rule release:
+    input:
+        '.release-%s.date' % config['version']
+    message:
+        '''
+        The complete release process has finished successfully.
+        You should now globally be able to run
+
+           pip install {config[package]}
+
+        '''
+
+rule test_upload:
+    '''
+    This rule uploads the latest release to the configured repository.
+    '''
+    input:
+        'dist/%s-{version}.tar.gz' % config['package']
+    output:
+        '.test-release-{version}.date'
+    params:
+        repo = 'testpypi'
+    shell:
+        '''
+        twine upload --repository {params.repo} {input}
+        date --iso=seconds >>{output}
+        '''
+
+rule upload:
+    '''
+    This rule uploads the latest release to the configured repository.
+    '''
+    input:
+        'dist/%s-{version}.tar.gz' % config['package'],
+    output:
+        '.release-{version}.date'
+    shell:
+        '''
+        twine upload {input}
+        date --iso=seconds >>{output}
+        '''
+
+rule package:
+    input:
+        'dist/{package}-{version}.tar.gz'.format(**config)
+
+rule build_package:
+    input:
+        '../{package}/',
+        '.tests_passed', # do not package broken software
+        '../setup.py',
+    output:
+        tarball = 'dist/{package}-{version}.tar.gz',
+    shell:
+        '''
+        # package
+        cd ..
+        python setup.py sdist
+
+        # cleanup
+        mv -v dist/* release/dist/
+        rm -rvf dist/
+
+        mkdir -v release/{wildcards.package}.egg-info/
+        mv -v {wildcards.package}.egg-info/* release/{wildcards.package}.egg-info/
+        rm -rvf {wildcards.package}.egg-info/
+        '''
+
+rule config_setup:
+    input:
+        'setup.py.template',
+    output:
+        setuppy = temporary('../setup.py'),
+    shell:
+        '''
+        # config
+        echo '#' >{output.setuppy}
+        echo '# THIS FILE IS AUTOMATICALLY CREATED BY release/Snakefile' >>{output.setuppy}
+        echo '#' >>{output.setuppy}
+        sed -e "s/version='.*'/version='{config[version]}'/" {input} >>{output.setuppy}
+        '''
+
+rule test:
+    input:
+        ".tests_passed",
+
+rule run_tests:
+    input:
+        '../setup.py',
+    output:
+        temporary(touch(".tests_passed")),
+    shell:
+        '''
+        # run tests
+        cd ..
+        python setup.py test
+        '''

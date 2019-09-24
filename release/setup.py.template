@@ -1,0 +1,57 @@
+# -*- coding: utf-8 -*-
+
+from setuptools import setup
+import os
+import sys
+try:
+    from urllib.request import urlretrieve
+except ImportError:
+    from urllib import urlretrieve
+
+long_description = open("README.md").read()
+
+setup(
+    name="playrandom",
+    version='<automatically-added-by-packaging>',
+    packages=['playrandom'],
+    package_data={
+        '': [
+            'LICENSE.txt'
+        ],
+    },
+
+    setup_requires = [
+        'setuptools>=17.1',
+        'pytest-runner',
+    ],
+    install_requires = [
+        'docopt',
+    ],
+
+    author="Dennis Terhorst",
+    author_email="d.terhorst@fz-juelich.de",
+    description="command line tool to play random media from given folders",
+    long_description=long_description,
+
+    entry_points = {
+        'console_scripts': [
+            'playrandom = playrandom.playrandom:main',
+        ],
+    },
+
+    # https://opensource.org/licenses/BSD-2-Clause
+    license="BSD",
+
+    url='https://github.com/terhorstd/playrandom',
+    # https://pypi.org/pypi?:action=list_classifiers
+    classifiers=[
+        'Development Status :: 3 - Alpha',
+        'Environment :: Console',
+        'Intended Audience :: End Users/Desktop',
+        'License :: OSI Approved :: BSD License',
+        'Natural Language :: English',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python :: 3',
+        'Topic :: Multimedia :: Video',
+        'Topic :: Multimedia :: Sound/Audio']
+)

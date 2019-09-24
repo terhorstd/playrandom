@@ -1,0 +1,4 @@
+dependencies:
+  - docopt=0.6
+  - pip
+  - python=3

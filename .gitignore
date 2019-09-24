@@ -1,0 +1,8 @@
+.snakemake
+
+dist/
+*.egg-info/
+setup.py
+.eggs/
+__pycache__/
+.pytest_cache/

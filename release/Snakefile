@@ -83,7 +83,7 @@ rule build_package:
         mv -v dist/* release/dist/
         rm -rvf dist/
 
-        mkdir -v release/{wildcards.package}.egg-info/
+        mkdir -vp release/{wildcards.package}.egg-info/
         mv -v {wildcards.package}.egg-info/* release/{wildcards.package}.egg-info/
         rm -rvf {wildcards.package}.egg-info/
         '''
